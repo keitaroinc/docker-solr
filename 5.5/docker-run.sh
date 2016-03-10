@@ -29,7 +29,7 @@ SOLR_PREFIX=${SOLR_PREFIX:-/opt/solr}
 SOLR_HOME=${SOLR_HOME:-${SOLR_PREFIX}/server/solr}
 SOLR_HOST=${SOLR_HOST:-127.0.0.1}
 SOLR_PORT=${SOLR_PORT:-8983}
-ZK_HOST=""
+ZK_HOST=${ZK_HOST:-""}
 
 # Show environment variables.
 echo "SOLR_PREFIX=${SOLR_PREFIX}"
@@ -39,7 +39,7 @@ echo "SOLR_PORT=${SOLR_PORT}"
 echo "ZK_HOST=${ZK_HOST}"
 
 # Start ZooKeeper.
-if [ "$SOLR_PID" != "" ]; then
+if [ -n "${ZK_HOST}" ]; then
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
 else
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
