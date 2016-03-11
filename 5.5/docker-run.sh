@@ -24,10 +24,17 @@
 # USE the trap if you need to also do manual cleanup after the service is stopped,
 #     or need to start multiple services in the one container
 
+# IP detection.
+DETECTED_IP=$(
+  ip addr show | grep -e "inet[^6]" | \
+    sed -e "s/.*inet[^6][^0-9]*\([0-9.]*\)[^0-9]*.*/\1/" | \
+    grep -v "^127\."
+)
+
 # Set environment variables.
 SOLR_PREFIX=${SOLR_PREFIX:-/opt/solr}
 SOLR_HOME=${SOLR_HOME:-${SOLR_PREFIX}/server/solr}
-SOLR_HOST=${SOLR_HOST:-127.0.0.1}
+SOLR_HOST=${SOLR_HOST:-${DETECTED_IP}}
 SOLR_PORT=${SOLR_PORT:-8983}
 ZK_HOST=${ZK_HOST:-""}
 
