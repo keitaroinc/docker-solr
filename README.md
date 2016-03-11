@@ -131,12 +131,8 @@ $ docker-machine ip default
 ### 11. Create a collection
 
 ```sh
-$ curl "http://192.168.99.100:18983/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=collection1_configs"
+$ curl "http://192.168.99.100:18983/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs"
 ```
-172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr
-http://192.168.99.100:18983/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=nodelist&collection.configName=configname
-
-./bin/solr create -c collection1 -d server/solr/configsets/data_driven_schema_configs -n collection1_configs -shards 1 -replicationFactor 1
 
 ### 11. Open URL in a browser
 
