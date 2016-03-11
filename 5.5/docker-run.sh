@@ -38,18 +38,30 @@ echo "SOLR_HOST=${SOLR_HOST}"
 echo "SOLR_PORT=${SOLR_PORT}"
 echo "ZK_HOST=${ZK_HOST}"
 
-# Start ZooKeeper.
+# Check ZK_HOST env.
 if [ -n "${ZK_HOST}" ]; then
-  # Create znode.
+  # Parse ZK_HOST env.
   declare -a ZK_HOST_LIST=()
   ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}\):[0-9]\{1,\}.*$/\1/g' | tr -s ',' ' '))
   ZK_HOST_PORT=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:\([0-9]\{1,\}\).*$/\1/g')
   ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:[0-9]\{1,\}\(.*\)$/\1/g')
-  for ZK in ${ZK_HOST_LIST}
-    ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE} > /dev/null 2>&1
+  for ZK_HOST_NAME in ${ZK_HOST_LIST}
+  do
+    # Check znode for SolrCloud.
+    MATCHED_ZNODE=$(
+      ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | \
+        grep -E "^\s+${ZK_ZNODE}\s+.*$" | \
+        sed -e "s/^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*$/\1/g"
+    )
+    if [ -z "${MATCHED_ZNODE}" ]; then
+      # Create znode for SolrCloud.
+      ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE} > /dev/null 2>&1
+    fi
   done
-  
+
+  # Start SolrCloud.
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
 else
+  # Start standalone Solr.
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
 fi

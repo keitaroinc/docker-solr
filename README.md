@@ -35,6 +35,8 @@ $ docker-machine ip default
 
 Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
 
+
+
 ## SolrCloud example
 
 ### 1. Start Zookeeper ensemble
