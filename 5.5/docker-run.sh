@@ -50,7 +50,7 @@ if [ -n "${ZK_HOST}" ]; then
     # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
     ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
     ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
-    
+
     # Check ZooKeeper node.
     if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
       echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} does not working."
@@ -61,7 +61,7 @@ if [ -n "${ZK_HOST}" ]; then
       MATCHED_ZNODE=$(
         ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | \
           grep -E "^\s+${ZK_ZNODE}\s+.*$" | \
-          sed -e "s/^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*$/\1/g"
+          sed -e "s|^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*|\1|g"
       )
       if [ -z "${MATCHED_ZNODE}" ]; then
         # Create znode for SolrCloud.
