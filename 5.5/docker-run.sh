@@ -47,15 +47,28 @@ if [ -n "${ZK_HOST}" ]; then
   ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:[0-9]\{1,\}\(.*\)$/\1/g')
   for ZK_HOST_NAME in ${ZK_HOST_LIST}
   do
-    # Check znode for SolrCloud.
-    MATCHED_ZNODE=$(
-      ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | \
-        grep -E "^\s+${ZK_ZNODE}\s+.*$" | \
-        sed -e "s/^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*$/\1/g"
-    )
-    if [ -z "${MATCHED_ZNODE}" ]; then
-      # Create znode for SolrCloud.
-      ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE} > /dev/null 2>&1
+    # Check ZooKeeper node.
+    if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
+      echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} does not working."
+      continue
+    fi
+    if [ "${RESPONSE}" = "imok" ]; then
+      # Check znode for SolrCloud.
+      MATCHED_ZNODE=$(
+        ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | \
+          grep -E "^\s+${ZK_ZNODE}\s+.*$" | \
+          sed -e "s/^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*$/\1/g"
+      )
+      if [ -z "${MATCHED_ZNODE}" ]; then
+        # Create znode for SolrCloud.
+        ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE}
+      else
+        echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} already has ${ZK_ZNODE}."
+        continue
+      fi
+    else
+      echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} status NG."
+      continue
     fi
   done
 

@@ -23,7 +23,7 @@ FROM java:openjdk-8-jre
 MAINTAINER Minoru Osuka "minoru.osuka@gmail.com"
 
 RUN apt-get update \
- && apt-get install -y wget tar jq \
+ && apt-get install -y wget tar netcat jq \
  && apt-get clean
 
 # Add group
