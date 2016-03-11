@@ -2,7 +2,7 @@
 
 ## Standalone Solr example
 
-### 1. Start Solr
+### 1. Start standalone Solr
 
 ```sh
 $ docker run -d -p 18983:8983 --name solr1 mosuka/docker-solr:release-5.5
@@ -37,13 +37,13 @@ Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:1898
 
 
 
-## SolrCloud example
+## SolrCloud (2 shards, 2 Replication factor) example
 
 ### 1. Start Zookeeper ensemble
 
 See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeeper/).
 
-### 1. Start solr1
+### 1. Start 1st Solr
 
 ```sh
 $ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
@@ -52,14 +52,14 @@ $ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
 c208161abfd4cb092aa7ec1a1de73a3c2f067b31982e3c626657a52022ae2652
 ```
 
-### 2. Start solr2
+### 2. Start 2nd Solr
 
 ```sh
 $ docker run -d --net=network1 -p 28983:8983 --name=solr2 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
 ```
 
-### 3. Start solr3
+### 3. Start 3rd Solr
 
 ```sh
 $ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
@@ -67,7 +67,7 @@ $ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
     mosuka/docker-solr:release-5.5
 ```
 
-### 4. Start solr4
+### 4. Start 4th Solr
 
 ```sh
 $ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
@@ -83,28 +83,28 @@ CONTAINER ID        IMAGE                                 COMMAND               
 032dd48d1249        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   15 seconds ago      Up 14 seconds       0.0.0.0:18983->8983/tcp                       solr1
 ```
 
-### 6. Get container IP of solr1
+### 6. Get container IP of 1st Solr
 
 ```sh
 $ docker inspect -f '{{ .NetworkSettings.IPAddress }}' 032dd48d1249
 172.17.0.3
 ```
 
-### 7. Get container IP of solr2
+### 7. Get container IP of 2nd Solr
 
 ```sh
 $ docker inspect -f '{{ .NetworkSettings.IPAddress }}' 032dd48d1249
 172.17.0.3
 ```
 
-### 8. Get container IP of solr3
+### 8. Get container IP of 3rd Solr
 
 ```sh
 $ docker inspect -f '{{ .NetworkSettings.IPAddress }}' 032dd48d1249
 172.17.0.3
 ```
 
-### 9. Get container IP of solr4
+### 9. Get container IP of 4th Solr
 
 ```sh
 $ docker inspect -f '{{ .NetworkSettings.IPAddress }}' 032dd48d1249
