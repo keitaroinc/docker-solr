@@ -40,6 +40,15 @@ echo "ZK_HOST=${ZK_HOST}"
 
 # Start ZooKeeper.
 if [ -n "${ZK_HOST}" ]; then
+  # Create znode.
+  declare -a ZK_HOST_LIST=()
+  ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}\):[0-9]\{1,\}.*$/\1/g' | tr -s ',' ' '))
+  ZK_HOST_PORT=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:\([0-9]\{1,\}\).*$/\1/g')
+  ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:[0-9]\{1,\}\(.*\)$/\1/g')
+  for ZK in ${ZK_HOST_LIST}
+    ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE} > /dev/null 2>&1
+  done
+  
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
 else
   ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}

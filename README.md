@@ -1,6 +1,6 @@
 # docker-solr
 
-## Start Standalone Solr
+## Standalone Solr example
 
 ### 1. Start Solr
 
@@ -33,35 +33,44 @@ $ docker-machine ip default
 
 ### 5. Open URL in a browser
 
-```
-http://192.168.99.100:18983/solr/#/
-```
+Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
 
-## Start SolrCloud
+## SolrCloud example
+
+### 1. Start Zookeeper ensemble
+
+See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeeper/).
 
 ### 1. Start solr1
 
 ```sh
-$ docker run -d -p 18983:8983 --name=solr1 -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
+    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    mosuka/docker-solr:release-5.5
 c208161abfd4cb092aa7ec1a1de73a3c2f067b31982e3c626657a52022ae2652
 ```
 
 ### 2. Start solr2
 
 ```sh
-$ docker run -d -p 28983:8983 --name=solr1 -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d --net=network1 -p 28983:8983 --name=solr2 \
+    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
 ```
 
 ### 3. Start solr3
 
 ```sh
-$ docker run -d -p 38983:8983 --name=solr1 -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
+    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    mosuka/docker-solr:release-5.5
 ```
 
 ### 4. Start solr4
 
 ```sh
-$ docker run -d -p 48983:8983 --name=solr1 -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
+    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    mosuka/docker-solr:release-5.5
 ```
 
 ### 5. Check container ID
@@ -109,7 +118,4 @@ $ docker-machine ip default
 
 ### 11. Open URL in a browser
 
-```
-http://192.168.99.100:18983/solr/#/
-```
-
+Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
