@@ -5,7 +5,7 @@
 ### 1. Start standalone Solr
 
 ```sh
-$ docker run -d -p 18983:8983 --name solr1 mosuka/docker-solr:release-5.5
+$ docker run -d -p 18983:8983 --name solr mosuka/docker-solr:release-5.5
 032dd48d12496c65a3405da483c4c16e4c9b26f3f7e22e0592717cfbd5830110
 ```
 
@@ -14,7 +14,7 @@ $ docker run -d -p 18983:8983 --name solr1 mosuka/docker-solr:release-5.5
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED             STATUS              PORTS                                         NAMES
-032dd48d1249        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   15 seconds ago      Up 14 seconds       0.0.0.0:18983->8983/tcp                       solr1
+032dd48d1249        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   15 seconds ago      Up 14 seconds       0.0.0.0:18983->8983/tcp                       solr
 ```
 
 ### 3. Get container IP
