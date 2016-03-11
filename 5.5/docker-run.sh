@@ -34,7 +34,7 @@ DETECTED_IP=$(
 # Set environment variables.
 SOLR_PREFIX=${SOLR_PREFIX:-/opt/solr}
 SOLR_HOME=${SOLR_HOME:-${SOLR_PREFIX}/server/solr}
-SOLR_HOST=${SOLR_HOST:-${DETECTED_IP}}
+SOLR_HOST=${SOLR_HOST:-${DETECTED_IP[0]}}
 SOLR_PORT=${SOLR_PORT:-8983}
 ZK_HOST=${ZK_HOST:-""}
 
@@ -70,13 +70,31 @@ if [ -n "${ZK_HOST}" ]; then
           grep -E "^\s+${ZK_ZNODE}\s+.*$" | \
           sed -e "s|^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*|\1|g"
       )
-      if [ -z "${MATCHED_ZNODE}" ]; then
+      if [ "${ZK_ZNODE}" != "${MATCHED_ZNODE}" ]; then
         # Create znode for SolrCloud.
         ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE}
       else
         echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} already has ${ZK_ZNODE}."
-        continue
       fi
+
+      # Get configsets name list.
+      CONFIGSETS_LIST=$(find ${SOLR_HOME}/configsets -d 1 -type d | awk -F / '{ print $NF }')
+      for CONFIGSETS in ${CONFIGSETS_LIST}
+      do
+        # Check configset.
+        MATCHED_CONFIGSETS=$(
+          ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | \
+            grep -E "^\s+${ZK_ZNODE}/configs/${CONFIGSETS}\s+.*$" | \
+            sed -e "s|^ \{1,\}${ZK_ZNODE}/configs/\(${CONFIGSETS}\) \{1,\}.*|\1|g"
+        )
+        if [ "${CONFIGSETS}" != "${MATCHED_CONFIGSETS}" ]; then
+          # Upload configset
+          ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT}${ZK_ZNODE} -cmd upconfig -confdir ${SOLR_HOME}/configsets/${CONFIGSETS}/conf/ -confname ${CONFIGSETS} 
+        else
+          echo "${ZK_HOST_NAME}:${ZK_HOST_PORT}${ZK_ZNODE} already has ${CONFIGSETS}."
+          continue
+        fi
+      done
     else
       echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} status NG."
       continue

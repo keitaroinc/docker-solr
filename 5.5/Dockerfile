@@ -43,7 +43,7 @@ WORKDIR /opt
 RUN wget http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
 RUN tar -xzf solr-$SOLR_VERSION.tgz
 RUN mv /opt/solr-$SOLR_VERSION $SOLR_PREFIX
-RUN chown -R $SOLR_USER:$SOLR_GROUP $SOLR_PREFIX 
+RUN chown -R $SOLR_USER:$SOLR_GROUP $SOLR_PREFIX
 
 # Add start script
 ADD docker-run.sh /usr/local/bin/
