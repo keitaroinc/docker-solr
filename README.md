@@ -37,7 +37,7 @@ Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:1898
 
 
 
-## SolrCloud (2 shards, 2 Replication factor) example
+## SolrCloud (2 shards across 4 nodes with replication factor 2) example
 
 ### 1. Start Zookeeper ensemble
 
