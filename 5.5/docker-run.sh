@@ -42,11 +42,13 @@ echo "ZK_HOST=${ZK_HOST}"
 if [ -n "${ZK_HOST}" ]; then
   # Parse ZK_HOST env.
   declare -a ZK_HOST_LIST=()
-  ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}\):[0-9]\{1,\}.*$/\1/g' | tr -s ',' ' '))
-  ZK_HOST_PORT=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:\([0-9]\{1,\}\).*$/\1/g')
-  ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^.\{1,\}:[0-9]\{1,\}\(.*\)$/\1/g')
-  for ZK_HOST_NAME in ${ZK_HOST_LIST}
+  ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\1/g' | tr -s ',' ' '))
+  ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\2/g'
+
+  for ZK_HOST_SERVER in ${ZK_HOST_LIST}
   do
+    ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
+    ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
     # Check ZooKeeper node.
     if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
       echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} does not working."
