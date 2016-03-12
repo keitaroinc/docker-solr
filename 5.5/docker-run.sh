@@ -78,7 +78,8 @@ if [ -n "${ZK_HOST}" ]; then
       fi
 
       # Get configsets name list.
-      CONFIGSETS_LIST=$(find ${SOLR_HOME}/configsets -type d -maxdepth 1 -mindepth 1 | awk -F / '{ print $NF }')
+      declare -a CONFIGSETS_LIST=()
+      CONFIGSETS_LIST=($(find ${SOLR_HOME}/configsets -type d -maxdepth 1 -mindepth 1 | awk -F / '{ print $NF }'))
       for CONFIGSETS in ${CONFIGSETS_LIST}
       do
         # Check configset.
@@ -102,8 +103,8 @@ if [ -n "${ZK_HOST}" ]; then
   done
 
   # Start SolrCloud.
-  echo ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
+  ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
 else
   # Start standalone Solr.
-  echo ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
+  ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
 fi
