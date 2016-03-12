@@ -49,7 +49,7 @@ See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeepe
 $ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
-1b2b1b962dde9501a255d3cd7d3c5837035bb7ea0a9b3c0242a13ac6f0c49d5a
+aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
 ```
 
 ### 2. Start 2nd Solr
@@ -58,7 +58,7 @@ $ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
 $ docker run -d --net=network1 -p 28983:8983 --name=solr2 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
-b8c8bb8615f4217a2c0ea49b484fa85332feeef44a06ce5f276fadf0d3883279
+30d83c26c131e65791a9f22eba2f1e7410bda156a634b27ef7593c07c7904753
 ```
 
 ### 3. Start 3rd Solr
@@ -67,7 +67,7 @@ b8c8bb8615f4217a2c0ea49b484fa85332feeef44a06ce5f276fadf0d3883279
 $ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
-4d56b0e34538d343c465620139ad49174087088b13052b432f8e1ff6e5604741
+18b80967aa730c11c49cd2ea5531044117469be7713de640b1fdc10cd3b8584b
 ```
 
 ### 4. Start 4th Solr
@@ -76,7 +76,7 @@ $ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
 $ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
-3071d9db2c4d55176b5a04fb3fd1cb153edb5fa16719b82acbaa1e3a4b266a3e
+7f6bf1fe58226942d9899a92c83377429381c93d4cd0075ee8a60c19e69d291b
 ```
 
 ### 5. Check container ID
@@ -84,13 +84,13 @@ $ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED              STATUS              PORTS                                         NAMES
-3071d9db2c4d        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   13 seconds ago       Up 12 seconds       7983/tcp, 0.0.0.0:48983->8983/tcp             solr4
-4d56b0e34538        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   23 seconds ago       Up 23 seconds       7983/tcp, 0.0.0.0:38983->8983/tcp             solr3
-b8c8bb8615f4        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   34 seconds ago       Up 34 seconds       7983/tcp, 0.0.0.0:28983->8983/tcp             solr2
-1b2b1b962dde        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 0.0.0.0:18983->8983/tcp             solr1
-432afd32772c        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   9 hours ago          Up 9 hours          2888/tcp, 3888/tcp, 0.0.0.0:32181->2181/tcp   zookeeper3
-d0c05513b4fd        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   9 hours ago          Up 9 hours          2888/tcp, 3888/tcp, 0.0.0.0:22181->2181/tcp   zookeeper2
-fc366f620f79        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   9 hours ago          Up 9 hours          2888/tcp, 3888/tcp, 0.0.0.0:12181->2181/tcp   zookeeper1
+7f6bf1fe5822        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   42 seconds ago       Up 41 seconds       7983/tcp, 0.0.0.0:48983->8983/tcp             solr4
+18b80967aa73        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   53 seconds ago       Up 52 seconds       7983/tcp, 0.0.0.0:38983->8983/tcp             solr3
+30d83c26c131        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 0.0.0.0:28983->8983/tcp             solr2
+aaef4999bd84        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago        Up 2 minutes        7983/tcp, 0.0.0.0:18983->8983/tcp             solr1
+1902ab480c57        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:32181->2181/tcp   zookeeper3
+182022f64ef7        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:22181->2181/tcp   zookeeper2
+a63962346037        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:12181->2181/tcp   zookeeper1
 ```
 
 ### 6. Get container IP of 1st Solr
@@ -132,8 +132,45 @@ $ docker-machine ip default
 
 ```sh
 $ curl "http://192.168.99.100:18983/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs"
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <lst name="responseHeader">
+    <int name="status">0</int>
+    <int name="QTime">22889</int>
+  </lst>
+  <lst name="success">
+    <lst>
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">17394</int>
+      </lst>
+      <str name="core">collection1_shard2_replica2</str>
+    </lst>
+    <lst>
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">17125</int>
+      </lst>
+      <str name="core">collection1_shard2_replica1</str>
+    </lst>
+    <lst>
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">21141</int>
+      </lst>
+      <str name="core">collection1_shard1_replica1</str>
+    </lst>
+    <lst>
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">21859</int>
+      </lst>
+      <str name="core">collection1_shard1_replica2</str>
+    </lst>
+  </lst>
+</response>
 ```
 
-### 11. Open URL in a browser
+### 12. Open URL in a browser
 
 Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
