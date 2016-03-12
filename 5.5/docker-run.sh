@@ -80,7 +80,7 @@ if [ -n "${ZK_HOST}" ]; then
       # Get configsets name list.
       declare -a CONFIGSETS_LIST=()
       CONFIGSETS_LIST=($(find ${SOLR_HOME}/configsets -type d -maxdepth 1 -mindepth 1 | awk -F / '{ print $NF }'))
-      for CONFIGSETS in ${CONFIGSETS_LIST}
+      for CONFIGSETS in ${CONFIGSETS_LIST[@]}
       do
         # Check configset.
         MATCHED_CONFIGSETS=$(
