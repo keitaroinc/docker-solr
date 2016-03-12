@@ -52,7 +52,7 @@ if [ -n "${ZK_HOST}" ]; then
   ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\1/g' | tr -s ',' ' '))
   ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\2/g')
 
-  for ZK_HOST_SERVER in ${ZK_HOST_LIST}
+  for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
   do
     # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
     ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
@@ -102,8 +102,8 @@ if [ -n "${ZK_HOST}" ]; then
   done
 
   # Start SolrCloud.
-  ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
+  echo ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
 else
   # Start standalone Solr.
-  ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
+  echo ${SOLR_PREFIX}/bin/solr -f -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
 fi
