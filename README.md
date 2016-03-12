@@ -20,8 +20,8 @@ CONTAINER ID        IMAGE                                 COMMAND               
 ### 3. Get container IP
 
 ```sh
-$ docker inspect -f '{{ .NetworkSettings.IPAddress }}' 032dd48d1249
-172.17.0.3
+$ docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr
+172.17.0.2
 ```
 
 ### 4. Get host IP
@@ -31,7 +31,21 @@ $ docker-machine ip default
 192.168.99.100
 ```
 
-### 5. Open URL in a browser
+### 5. Create core
+
+```sh
+$ curl "http://192.168.99.100:18983/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data"
+<?xml version="1.0" encoding="UTF-8"?>
+<response>
+  <lst name="responseHeader">
+    <int name="status">0</int>
+    <int name="QTime">489</int>
+  </lst>
+  <str name="core">collection1</str>
+</response>
+```
+
+### 6. Open URL in a browser
 
 Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
 
