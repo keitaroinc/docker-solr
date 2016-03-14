@@ -98,7 +98,7 @@ $ docker run -d --net=network1 -p 8987:8983 --name=solr4 \
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED              STATUS              PORTS                                         NAMES
-7f6bf1fe5822        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   42 seconds ago       Up 41 seconds       7983/tcp, 0.0.0.0:8986->8983/tcp             solr4
+7f6bf1fe5822        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   42 seconds ago       Up 41 seconds       7983/tcp, 0.0.0.0:8987->8983/tcp             solr4
 18b80967aa73        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   53 seconds ago       Up 52 seconds       7983/tcp, 0.0.0.0:8986->8983/tcp             solr3
 30d83c26c131        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 0.0.0.0:8985->8983/tcp             solr2
 aaef4999bd84        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago        Up 2 minutes        7983/tcp, 0.0.0.0:8984->8983/tcp             solr1
