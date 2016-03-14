@@ -34,20 +34,24 @@ $ docker-machine ip default
 ### 5. Create core
 
 ```sh
-$ curl "http://192.168.99.100:8984/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data"
+$ curl "http://192.168.99.100:8984/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data" | \
+    xmllint --format -
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   184    0   184    0     0     51      0 --:--:--  0:00:03 --:--:--    52
 <?xml version="1.0" encoding="UTF-8"?>
 <response>
   <lst name="responseHeader">
     <int name="status">0</int>
-    <int name="QTime">489</int>
+    <int name="QTime">3520</int>
   </lst>
   <str name="core">collection1</str>
 </response>
 ```
 
-### 6. Open URL in a browser
+### 6. Open Solr Admin UI in a browser
 
-Open Solr Admin([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
+Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
 
 
 
@@ -145,46 +149,50 @@ $ docker-machine ip default
 ### 11. Create a collection
 
 ```sh
-$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs"
+$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs" | \
+    xmllint --format -
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   773    0   773    0     0     27      0 --:--:--  0:00:28 --:--:--   186
 <?xml version="1.0" encoding="UTF-8"?>
 <response>
   <lst name="responseHeader">
     <int name="status">0</int>
-    <int name="QTime">22889</int>
+    <int name="QTime">28423</int>
   </lst>
   <lst name="success">
     <lst>
       <lst name="responseHeader">
         <int name="status">0</int>
-        <int name="QTime">17394</int>
+        <int name="QTime">22263</int>
       </lst>
-      <str name="core">collection1_shard2_replica2</str>
+      <str name="core">collection1_shard1_replica2</str>
     </lst>
     <lst>
       <lst name="responseHeader">
         <int name="status">0</int>
-        <int name="QTime">17125</int>
-      </lst>
-      <str name="core">collection1_shard2_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21141</int>
+        <int name="QTime">21997</int>
       </lst>
       <str name="core">collection1_shard1_replica1</str>
     </lst>
     <lst>
       <lst name="responseHeader">
         <int name="status">0</int>
-        <int name="QTime">21859</int>
+        <int name="QTime">26777</int>
       </lst>
-      <str name="core">collection1_shard1_replica2</str>
+      <str name="core">collection1_shard2_replica1</str>
+    </lst>
+    <lst>
+      <lst name="responseHeader">
+        <int name="status">0</int>
+        <int name="QTime">27561</int>
+      </lst>
+      <str name="core">collection1_shard2_replica2</str>
     </lst>
   </lst>
 </response>
 ```
 
-### 12. Open URL in a browser
+### 12. Open Solr Admin UI in a browser
 
-Open Solr Admin([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
+Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
