@@ -5,7 +5,7 @@
 ### 1. Start standalone Solr
 
 ```sh
-$ docker run -d -p 18983:8983 --name solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.5
 032dd48d12496c65a3405da483c4c16e4c9b26f3f7e22e0592717cfbd5830110
 ```
 
@@ -14,7 +14,7 @@ $ docker run -d -p 18983:8983 --name solr mosuka/docker-solr:release-5.5
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED             STATUS              PORTS                                         NAMES
-032dd48d1249        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   15 seconds ago      Up 14 seconds       0.0.0.0:18983->8983/tcp                       solr
+032dd48d1249        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   15 seconds ago      Up 14 seconds       0.0.0.0:8984->8983/tcp                       solr
 ```
 
 ### 3. Get container IP
@@ -34,7 +34,7 @@ $ docker-machine ip default
 ### 5. Create core
 
 ```sh
-$ curl "http://192.168.99.100:18983/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data"
+$ curl "http://192.168.99.100:8984/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data"
 <?xml version="1.0" encoding="UTF-8"?>
 <response>
   <lst name="responseHeader">
@@ -47,7 +47,7 @@ $ curl "http://192.168.99.100:18983/solr/admin/cores?action=CREATE&name=collecti
 
 ### 6. Open URL in a browser
 
-Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
+Open Solr Admin([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
 
 
 
@@ -60,7 +60,7 @@ See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeepe
 ### 1. Start 1st Solr
 
 ```sh
-$ docker run -d --net=network1 -p 18983:8983 --name=solr1 \
+$ docker run -d --net=network1 -p 8984:8983 --name=solr1 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
 aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
@@ -69,7 +69,7 @@ aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
 ### 2. Start 2nd Solr
 
 ```sh
-$ docker run -d --net=network1 -p 28983:8983 --name=solr2 \
+$ docker run -d --net=network1 -p 8985:8983 --name=solr2 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
 30d83c26c131e65791a9f22eba2f1e7410bda156a634b27ef7593c07c7904753
@@ -78,7 +78,7 @@ $ docker run -d --net=network1 -p 28983:8983 --name=solr2 \
 ### 3. Start 3rd Solr
 
 ```sh
-$ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
+$ docker run -d --net=network1 -p 8986:8983 --name=solr3 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
 18b80967aa730c11c49cd2ea5531044117469be7713de640b1fdc10cd3b8584b
@@ -87,7 +87,7 @@ $ docker run -d --net=network1 -p 38983:8983 --name=solr3 \
 ### 4. Start 4th Solr
 
 ```sh
-$ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
+$ docker run -d --net=network1 -p 8987:8983 --name=solr4 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
     mosuka/docker-solr:release-5.5
 7f6bf1fe58226942d9899a92c83377429381c93d4cd0075ee8a60c19e69d291b
@@ -98,13 +98,13 @@ $ docker run -d --net=network1 -p 48983:8983 --name=solr4 \
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED              STATUS              PORTS                                         NAMES
-7f6bf1fe5822        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   42 seconds ago       Up 41 seconds       7983/tcp, 0.0.0.0:48983->8983/tcp             solr4
-18b80967aa73        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   53 seconds ago       Up 52 seconds       7983/tcp, 0.0.0.0:38983->8983/tcp             solr3
-30d83c26c131        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 0.0.0.0:28983->8983/tcp             solr2
-aaef4999bd84        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago        Up 2 minutes        7983/tcp, 0.0.0.0:18983->8983/tcp             solr1
-1902ab480c57        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:32181->2181/tcp   zookeeper3
-182022f64ef7        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:22181->2181/tcp   zookeeper2
-a63962346037        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:12181->2181/tcp   zookeeper1
+7f6bf1fe5822        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   42 seconds ago       Up 41 seconds       7983/tcp, 0.0.0.0:8986->8983/tcp             solr4
+18b80967aa73        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   53 seconds ago       Up 52 seconds       7983/tcp, 0.0.0.0:8986->8983/tcp             solr3
+30d83c26c131        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 0.0.0.0:8985->8983/tcp             solr2
+aaef4999bd84        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago        Up 2 minutes        7983/tcp, 0.0.0.0:8984->8983/tcp             solr1
+1902ab480c57        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:2184->2181/tcp   zookeeper3
+182022f64ef7        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:2183->2181/tcp   zookeeper2
+a63962346037        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:2182->2181/tcp   zookeeper1
 ```
 
 ### 6. Get container IP of 1st Solr
@@ -145,7 +145,7 @@ $ docker-machine ip default
 ### 11. Create a collection
 
 ```sh
-$ curl "http://192.168.99.100:18983/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs"
+$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs"
 <?xml version="1.0" encoding="UTF-8"?>
 <response>
   <lst name="responseHeader">
@@ -187,4 +187,4 @@ $ curl "http://192.168.99.100:18983/solr/admin/collections?action=CREATE&name=co
 
 ### 12. Open URL in a browser
 
-Open Solr Admin([http://192.168.99.100:18983/solr/#/](http://192.168.99.100:18983/solr/#/)) in a browser.
+Open Solr Admin([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
