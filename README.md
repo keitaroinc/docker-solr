@@ -146,10 +146,18 @@ $ docker-machine ip default
 192.168.99.100
 ```
 
-### 11. Create a collection
+### 11. Get /live_nodes
 
 ```sh
-$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr&collection.configName=data_driven_schema_configs" | \
+$ LIVE_NODES=$(echo $(curl "http://192.168.99.100:8984/solr/admin/zookeeper?detail=true&path=%2Flive_nodes" | jq -r '.tree[].children[].data.title') | sed -e s'/ /,/g')
+$ echo ${LIVE_NODES}
+172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr
+```
+
+### 12. Create a collection
+
+```sh
+$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=${LIVE_NODES}&collection.configName=data_driven_schema_configs" | \
     xmllint --format -
   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
