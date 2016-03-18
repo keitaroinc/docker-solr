@@ -269,7 +269,7 @@ function stop() {
         REPLICA_NAME_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas" | jq -r "to_entries" | jq ".[]" | jq "select(.value.node_name == \"$NODE_NAME\")" | jq -r ".key"))
         for REPLICA_NAME in "${REPLICA_NAME_LIST[@]}"
         do
-          curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=DELETEREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&replica=${REPLICA_NAME}" | xmllint --format - 
+          curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=DELETEREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&replica=${REPLICA_NAME}" | xmllint --format -
         done
       done
     done
