@@ -5,7 +5,11 @@
 ### 1. Start standalone Solr
 
 ```sh
-$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8984:8983 --name solr \
+    -e CORE_NAME=collection1 \
+    -e CONFIG_SET=data_driven_schema_configs \
+    -e DATA_DIR=data \
+    mosuka/docker-solr:release-5.5
 032dd48d12496c65a3405da483c4c16e4c9b26f3f7e22e0592717cfbd5830110
 ```
 
@@ -20,36 +24,20 @@ CONTAINER ID        IMAGE                                 COMMAND               
 ### 3. Get container IP
 
 ```sh
-$ docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr
+$ SOLR_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr)
+$ echo ${SOLR_CONTAINER_IP}
 172.17.0.2
 ```
 
 ### 4. Get host IP
 
 ```sh
-$ docker-machine ip default
+$ SOLR_HOST_IP=$(docker-machine ip default)
+$ echo ${SOLR_HOST_IP}
 192.168.99.100
 ```
 
-### 5. Create core
-
-```sh
-$ curl "http://192.168.99.100:8984/solr/admin/cores?action=CREATE&name=collection1&configSet=data_driven_schema_configs&dataDir=data" | \
-    xmllint --format -
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   184    0   184    0     0     51      0 --:--:--  0:00:03 --:--:--    52
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">3520</int>
-  </lst>
-  <str name="core">collection1</str>
-</response>
-```
-
-### 6. Open Solr Admin UI in a browser
+### 5. Open Solr Admin UI in a browser
 
 Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
 
@@ -66,6 +54,9 @@ See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeepe
 ```sh
 $ docker run -d --net=network1 -p 8984:8983 --name=solr1 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    -e COLLECTION_NAME=collection1 \
+    -e NUM_SHARDS=2 \
+    -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
 ```
@@ -75,6 +66,9 @@ aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
 ```sh
 $ docker run -d --net=network1 -p 8985:8983 --name=solr2 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    -e COLLECTION_NAME=collection1 \
+    -e NUM_SHARDS=2 \
+    -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 30d83c26c131e65791a9f22eba2f1e7410bda156a634b27ef7593c07c7904753
 ```
@@ -84,6 +78,9 @@ $ docker run -d --net=network1 -p 8985:8983 --name=solr2 \
 ```sh
 $ docker run -d --net=network1 -p 8986:8983 --name=solr3 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    -e COLLECTION_NAME=collection1 \
+    -e NUM_SHARDS=2 \
+    -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 18b80967aa730c11c49cd2ea5531044117469be7713de640b1fdc10cd3b8584b
 ```
@@ -93,6 +90,9 @@ $ docker run -d --net=network1 -p 8986:8983 --name=solr3 \
 ```sh
 $ docker run -d --net=network1 -p 8987:8983 --name=solr4 \
     -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+    -e COLLECTION_NAME=collection1 \
+    -e NUM_SHARDS=2 \
+    -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 7f6bf1fe58226942d9899a92c83377429381c93d4cd0075ee8a60c19e69d291b
 ```
@@ -146,61 +146,6 @@ $ docker-machine ip default
 192.168.99.100
 ```
 
-### 11. Get /live_nodes
-
-```sh
-$ LIVE_NODES=$(echo $(curl "http://192.168.99.100:8984/solr/admin/zookeeper?detail=true&path=%2Flive_nodes" | jq -r '.tree[].children[].data.title') | sed -e s'/ /,/g')
-$ echo ${LIVE_NODES}
-172.18.0.5:8983_solr,172.18.0.6:8983_solr,172.18.0.7:8983_solr,172.18.0.8:8983_solr
-```
-
-### 12. Create a collection
-
-```sh
-$ curl "http://192.168.99.100:8984/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&createNodeSet=${LIVE_NODES}&collection.configName=data_driven_schema_configs" | \
-    xmllint --format -
-  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
-                                 Dload  Upload   Total   Spent    Left  Speed
-100   773    0   773    0     0     27      0 --:--:--  0:00:28 --:--:--   186
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">28423</int>
-  </lst>
-  <lst name="success">
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">22263</int>
-      </lst>
-      <str name="core">collection1_shard1_replica2</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21997</int>
-      </lst>
-      <str name="core">collection1_shard1_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">26777</int>
-      </lst>
-      <str name="core">collection1_shard2_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">27561</int>
-      </lst>
-      <str name="core">collection1_shard2_replica2</str>
-    </lst>
-  </lst>
-</response>
-```
-
-### 12. Open Solr Admin UI in a browser
+### 11. Open Solr Admin UI in a browser
 
 Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.

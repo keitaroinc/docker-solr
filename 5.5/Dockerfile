@@ -23,7 +23,7 @@ FROM java:openjdk-8-jre
 MAINTAINER Minoru Osuka "minoru.osuka@gmail.com"
 
 RUN apt-get update \
- && apt-get install -y wget tar netcat jq libxml2-utils \
+ && apt-get install -y tar netcat lsof jq libxml2-utils \
  && apt-get clean
 
 # Add group
@@ -36,13 +36,13 @@ ENV SOLR_UID 8983
 RUN useradd -r -u $SOLR_UID -g $SOLR_GROUP $SOLR_USER
 
 # Install ZooKeeper
+ENV INSTALL_DIR=/opt
 ENV SOLR_VERSION 5.5.0
-ENV SOLR_PREFIX /opt/solr
-RUN mkdir -p /opt
-WORKDIR /opt
-RUN wget http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
-RUN tar -xzf solr-$SOLR_VERSION.tgz
-RUN mv /opt/solr-$SOLR_VERSION $SOLR_PREFIX
+RUN mkdir -p ${INSTALL_DIR}
+WORKDIR ${INSTALL_DIR}
+RUN curl -L -o ${INSTALL_DIR}/solr-$SOLR_VERSION.tgz http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
+RUN tar -xzf solr-$SOLR_VERSION.tgz && rm ${INSTALL_DIR}/solr-$SOLR_VERSION.tgz
+ENV SOLR_PREFIX ${INSTALL_DIR}/solr-${SOLR_VERSION}
 RUN chown -R $SOLR_USER:$SOLR_GROUP $SOLR_PREFIX
 
 # Add start script
