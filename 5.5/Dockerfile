@@ -47,6 +47,7 @@ RUN chown -R $SOLR_USER:$SOLR_GROUP $SOLR_PREFIX
 
 # Add start script
 ADD docker-run.sh /usr/local/bin/
+ADD docker-stop.sh /usr/local/bin/
 
 EXPOSE 8983 7983 18983
 USER $SOLR_USER

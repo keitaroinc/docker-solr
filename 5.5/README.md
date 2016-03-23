@@ -29,17 +29,27 @@ $ echo ${SOLR_CONTAINER_IP}
 172.17.0.2
 ```
 
-### 4. Get host IP
+### 4. Get host IP and port
 
 ```sh
 $ SOLR_HOST_IP=$(docker-machine ip default)
 $ echo ${SOLR_HOST_IP}
 192.168.99.100
+
+$ SOLR_HOST_PORT=$(docker inspect -f '{{ $port := index .NetworkSettings.Ports "8983/tcp" }}{{ range $port }}{{ .HostPort }}{{ end }}' solr)
+$ echo ${SOLR_HOST_PORT}
+8984
 ```
 
 ### 5. Open Solr Admin UI in a browser
 
-Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
+```sh
+$ SOLR_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_HOST_PORT}/solr/#/
+$ echo ${SOLR_ADMIN_UI}
+http://192.168.99.100:8984/solr/#/
+```
+
+Open Solr Admin UI in a browser.
 
 
 
@@ -47,49 +57,39 @@ Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8
 
 ### 1. Start Zookeeper ensemble
 
-See [ZooKeeper ensemble example](https://hub.docker.com/r/mosuka/docker-zookeeper/).
+Run ZooKeeper ensemble.
 
-### 1. Start 1st Solr
+See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5#zookeeper-ensemble-3-nodes-example](https://github.com/mosuka/docker-zookeeper/tree/master/3.5#zookeeper-ensemble-3-nodes-example).
+
+### 2. Start Solr
 
 ```sh
-$ docker run -d --net=network1 -p 8984:8983 --name=solr1 \
-    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+$ docker run -d -p 8984:8983 --name=solr1 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
     -e COLLECTION_NAME=collection1 \
     -e NUM_SHARDS=2 \
     -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 aaef4999bd84f17387a0a868c864cf25154f743fd0519753172f20cac32d7334
-```
 
-### 2. Start 2nd Solr
-
-```sh
-$ docker run -d --net=network1 -p 8985:8983 --name=solr2 \
-    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+$ docker run -d -p 8985:8983 --name=solr2 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
     -e COLLECTION_NAME=collection1 \
     -e NUM_SHARDS=2 \
     -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 30d83c26c131e65791a9f22eba2f1e7410bda156a634b27ef7593c07c7904753
-```
 
-### 3. Start 3rd Solr
-
-```sh
-$ docker run -d --net=network1 -p 8986:8983 --name=solr3 \
-    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+$ docker run -d -p 8986:8983 --name=solr3 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
     -e COLLECTION_NAME=collection1 \
     -e NUM_SHARDS=2 \
     -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
     mosuka/docker-solr:release-5.5
 18b80967aa730c11c49cd2ea5531044117469be7713de640b1fdc10cd3b8584b
-```
 
-### 4. Start 4th Solr
-
-```sh
-$ docker run -d --net=network1 -p 8987:8983 --name=solr4 \
-    -e ZK_HOST=172.18.0.2:2181,172.18.0.3:2181,172.18.0.4:2181/solr \
+$ docker run -d -p 8987:8983 --name=solr4 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
     -e COLLECTION_NAME=collection1 \
     -e NUM_SHARDS=2 \
     -e COLLECTION_CONFIG_NAME=data_driven_schema_configs \
@@ -111,41 +111,66 @@ aaef4999bd84        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"
 a63962346037        mosuka/docker-zookeeper:release-3.4   "/usr/local/bin/docke"   15 hours ago         Up 15 hours         2888/tcp, 3888/tcp, 0.0.0.0:2182->2181/tcp   zookeeper1
 ```
 
-### 6. Get container IP of 1st Solr
+### 6. Get container IP and port
 
 ```sh
-$ docker inspect -f '{{ .NetworkSettings.Networks.network1.IPAddress }}' solr1
-172.18.0.5
+$ SOLR_1_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr1)
+$ echo ${SOLR_1_CONTAINER_IP}
+172.17.0.5
+
+$ SOLR_2_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr2)
+$ echo ${SOLR_2_CONTAINER_IP}
+172.17.0.6
+
+$ SOLR_3_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr3)
+$ echo ${SOLR_3_CONTAINER_IP}
+172.17.0.7
+
+$ SOLR_4_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr4)
+$ echo ${SOLR_4_CONTAINER_IP}
+172.17.0.8
 ```
 
-### 7. Get container IP of 2nd Solr
+### 10. Get host IP and port
 
 ```sh
-$ docker inspect -f '{{ .NetworkSettings.Networks.network1.IPAddress }}' solr2
-172.18.0.6
-```
-
-### 8. Get container IP of 3rd Solr
-
-```sh
-$ docker inspect -f '{{ .NetworkSettings.Networks.network1.IPAddress }}' solr3
-172.18.0.7
-```
-
-### 9. Get container IP of 4th Solr
-
-```sh
-$ docker inspect -f '{{ .NetworkSettings.Networks.network1.IPAddress }}' solr4
-172.18.0.8
-```
-
-### 10. Get host IP
-
-```sh
-$ docker-machine ip default
+$ SOLR_HOST_IP=$(docker-machine ip default)
+$ echo ${SOLR_HOST_IP}
 192.168.99.100
+
+$ SOLR_1_HOST_PORT=$(docker inspect -f '{{ $port := index .NetworkSettings.Ports "8983/tcp" }}{{ range $port }}{{ .HostPort }}{{ end }}' solr1)
+$ echo ${SOLR_1_HOST_PORT}
+8984
+
+$ SOLR_2_HOST_PORT=$(docker inspect -f '{{ $port := index .NetworkSettings.Ports "8983/tcp" }}{{ range $port }}{{ .HostPort }}{{ end }}' solr2)
+$ echo ${SOLR_2_HOST_PORT}
+8985
+
+$ SOLR_3_HOST_PORT=$(docker inspect -f '{{ $port := index .NetworkSettings.Ports "8983/tcp" }}{{ range $port }}{{ .HostPort }}{{ end }}' solr3)
+$ echo ${SOLR_3_HOST_PORT}
+8986
+
+$ SOLR_4_HOST_PORT=$(docker inspect -f '{{ $port := index .NetworkSettings.Ports "8983/tcp" }}{{ range $port }}{{ .HostPort }}{{ end }}' solr4)
+$ echo ${SOLR_4_HOST_PORT}
+8987
 ```
 
 ### 11. Open Solr Admin UI in a browser
 
-Open Solr Admin UI ([http://192.168.99.100:8984/solr/#/](http://192.168.99.100:8984/solr/#/)) in a browser.
+```sh
+$ SOLR_1_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/#/
+$ echo ${SOLR_1_ADMIN_UI}
+http://192.168.99.100:8984/solr/#/
+
+$ SOLR_2_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_2_HOST_PORT}/solr/#/
+$ echo ${SOLR_2_ADMIN_UI}
+http://192.168.99.100:8985/solr/#/
+
+$ SOLR_3_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_3_HOST_PORT}/solr/#/
+$ echo ${SOLR_3_ADMIN_UI}
+http://192.168.99.100:8986/solr/#/
+
+$ SOLR_4_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_4_HOST_PORT}/solr/#/
+$ echo ${SOLR_4_ADMIN_UI}
+http://192.168.99.100:8987/solr/#/
+```

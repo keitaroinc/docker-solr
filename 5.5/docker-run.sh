@@ -70,8 +70,9 @@ echo "COLLECTION_CONFIG_NAME=${COLLECTION_CONFIG_NAME}"
 
 # Start function
 function start() {
+  NODE_NAME=${SOLR_HOST}:${SOLR_PORT}_solr
+
   if [ -n "${ZK_HOST}" ]; then
-    NODE_NAME=${SOLR_HOST}:${SOLR_PORT}_solr
 
     # Split ZK_HOST into ZK_HOST_LIST and ZK_ZNODE.
     declare -a ZK_HOST_LIST=()
@@ -241,8 +242,6 @@ function start() {
       # Add node as replica to shard of collection.
       curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=ADDREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&node=${NODE_NAME}" | xmllint --format -
     fi
-
-    echo "${NODE_NAME} is available."
   else
     # Start standalone Solr.
     ${SOLR_PREFIX}/bin/solr start -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
@@ -251,34 +250,12 @@ function start() {
       # Create core.
       curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/cores?action=CREATE&name=${CORE_NAME}&configSet=${CONFIG_SET}&dataDir=${DATA_DIR}" | xmllint --format -
     fi
-
-    echo "Standalone Solr is available."
   fi
+  
+  echo "${NODE_NAME} is available."
 }
 
-# Stop function.
-function stop() {
-  if [ -n "${ZK_HOST}" ]; then
-    NODE_NAME=${SOLR_HOST}:${SOLR_PORT}_solr
-    COLLECTION_NAME_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=LIST&wt=json" | jq -r '.collections[]'))
-    for COLLECTION_NAME in "${COLLECTION_NAME_LIST[@]}"
-    do
-      STATE_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Fcollections%2F${COLLECTION_NAME}%2Fstate.json")
-      SHARD_NAME_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards | keys" | jq -r ".[]"))
-      for SHARD_NAME in "${SHARD_NAME_LIST[@]}"
-      do
-        REPLICA_NAME_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas" | jq -r "to_entries" | jq ".[]" | jq "select(.value.node_name == \"$NODE_NAME\")" | jq -r ".key"))
-        for REPLICA_NAME in "${REPLICA_NAME_LIST[@]}"
-        do
-          curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=DELETEREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&replica=${REPLICA_NAME}" | xmllint --format -
-        done
-      done
-    done
-  fi
-  ${SOLR_PREFIX}/bin/solr stop -p ${SOLR_PORT}
-}
-
-trap "stop; exit 1" TERM KILL INT QUIT
+trap "docker-stop.sh; exit 1" TERM KILL INT QUIT
 
 # Start
 start
