@@ -166,7 +166,7 @@ function start() {
       while [ ${#LIVE_NODE_LIST[@]} -lt ${NUM_SHARDS} ]
       do
         LIVE_NODE_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Flive_nodes" | jq -r ".tree[].children[].data.title"))
-        sleep 2
+        sleep 1
       done
 
       # Get collection list.
@@ -198,7 +198,7 @@ function start() {
         fi
       done
     else
-      sleep 5
+      sleep 1
     fi
 
     # Waiting until the collection has unlocked.
