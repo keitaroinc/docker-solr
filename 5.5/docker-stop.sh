@@ -46,30 +46,92 @@ echo "SOLR_HOST=${SOLR_HOST}"
 echo "SOLR_PORT=${SOLR_PORT}"
 echo "ZK_HOST=${ZK_HOST}"
 
+SOLR_COLLECTIONS_API_PATH=/solr/admin/collections
+
 # Stop function.
 function stop() {
   NODE_NAME=${SOLR_HOST}:${SOLR_PORT}_solr
 
+  # SolrCloud mode?
   if [ -n "${ZK_HOST}" ]; then
-    COLLECTION_NAME_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=LIST&wt=json" | jq -r '.collections[]'))
+    # Get latest cluster state JSON.
+    CLUSTERSTATUS_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=CLUSTERSTATUS&wt=json")
+
+    # Get collection list.
+    COLLECTION_NAME_LIST=($(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections | to_entries | .[].key"))
     for COLLECTION_NAME in "${COLLECTION_NAME_LIST[@]}"
     do
-      STATE_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Fcollections%2F${COLLECTION_NAME}%2Fstate.json")
-      SHARD_NAME_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards | keys" | jq -r ".[]"))
+      # Get shard list in a collection.
+      SHARD_NAME_LIST=($(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards | keys | .[]"))
       for SHARD_NAME in "${SHARD_NAME_LIST[@]}"
       do
-        REPLICA_NAME_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas" | jq -r "to_entries" | jq ".[]" | jq "select(.value.node_name == \"$NODE_NAME\")" | jq -r ".key"))
+        # Get replica list in a shard.
+        REPLICA_NAME_LIST=($(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas | to_entries | .[] | select(.value.node_name == \"${NODE_NAME}\") | .key"))
         for REPLICA_NAME in "${REPLICA_NAME_LIST[@]}"
         do
-          curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=DELETEREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&replica=${REPLICA_NAME}" | xmllint --format -
+          # Get latest cluster state JSON.
+          CLUSTERSTATUS_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=CLUSTERSTATUS&wt=json")
+
+          # Live nodes.
+          LIVE_NODE_LIST=($(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.live_nodes[]" | grep -v -e "^${NODE_NAME}$"))
+          # Runnning nodes.
+          RUNNING_NODE_LIST=($(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections[].shards[].replicas[].node_name" | grep -v -e "^${NODE_NAME}$"))
+          # Available nodes.
+          AVAILABLE_NODE_LIST=(${LIVE_NODE_LIST[@]} ${RUNNING_NODE_LIST[@]})
+          if [ ${#AVAILABLE_NODE_LIST[@]} -le 0 ]; then
+            continue
+          fi
+          # Choose node to add (the node that hava minimum number of collections.).
+          ADDREPLICA_NODE=$(for AVAILABLE_NODE in "${AVAILABLE_NODE_LIST[@]}"; do echo ${AVAILABLE_NODE}; done | sort | uniq -c | sort -n -k 1 | head -1 | awk -F " " '{print $2}')
+          echo "ADDREPLICA_NODE=${ADDREPLICA_NODE}"
+          # Add replica and added core name.
+          CORE_NAME=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=ADDREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&node=${ADDREPLICA_NODE}&wt=xml" | xmllint --xpath "/response/lst[@name=\"success\"]/lst/str[@name=\"core\"]/text()" -)
+          echo "CORE_NAME=${CORE_NAME}"
+
+          # Leader node?
+          IS_LEADER_REPLICA=$(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas.${REPLICA_NAME}.leader")
+          echo "IS_LEADER_REPLICA=${IS_LEADER_REPLICA}"
+          # Get active replicas.
+          ACTIVE_REPLICA_NUM=$(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas | to_entries | .[] | select(.value.state == \"active\") | .key" | grep -v -e "^${REPLICA_NAME}$" | wc -l)
+          echo "ACTIVE_REPLICA_NUM=${ACTIVE_REPLICA_NUM}"
+          if [ "${IS_LEADER_REPLICA}" == "true" -a ${ACTIVE_REPLICA_NUM} -lt 1 ]; then
+            # Waiting core acvibate.
+            while true
+            do
+              # Get latest cluster state JSON.
+              CLUSTERSTATUS_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=CLUSTERSTATUS&wt=json")
+              STATE=$(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas | to_entries | .[] | select(.value.core == \"${CORE_NAME}\") | .value.state")
+              echo "STATE=${STATE}"
+              if [ "${STATE}" == "active" ]; then
+                break
+              fi
+              sleep 1
+            done
+          fi
+
+          # Delete replica.
+          curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=DELETEREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&replica=${REPLICA_NAME}" | xmllint --format -
+
+          if [ "${IS_LEADER_REPLICA}" == "true" ]; then
+            # Waiting new leader.
+            while true
+            do
+              # Get latest cluster state JSON.
+              CLUSTERSTATUS_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}${SOLR_COLLECTIONS_API_PATH}?action=CLUSTERSTATUS&wt=json")
+              NEW_LEADER_REPLICA=$(echo ${CLUSTERSTATUS_JSON} | jq -r ".cluster.collections.${COLLECTION_NAME}.shards.${SHARD_NAME}.replicas | to_entries | .[] | select(.value.leader == \"true\") | .key" | grep -v -e "^${REPLICA_NAME}$")
+              echo "NEW_LEADER_REPLICA=${NEW_LEADER_REPLICA}"
+              if [ -n "${NEW_LEADER_REPLICA}" ]; then
+                break
+              fi
+              sleep 1
+            done
+          fi
         done
       done
     done
   fi
   
   ${SOLR_PREFIX}/bin/solr stop -p ${SOLR_PORT}
-
-  echo "${NODE_NAME} is unavailable."
 }
 
 # Stop

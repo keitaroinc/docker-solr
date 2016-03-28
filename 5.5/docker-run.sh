@@ -37,6 +37,7 @@ SOLR_PREFIX=${SOLR_PREFIX:-/opt/solr}
 SOLR_HOME=${SOLR_HOME:-${SOLR_PREFIX}/server/solr}
 SOLR_HOST=${SOLR_HOST:-${DETECTED_IP}}
 SOLR_PORT=${SOLR_PORT:-8983}
+SOLR_HEAP_SIZE=${SOLR_HEAP_SIZE:-512m}
 ZK_HOST=${ZK_HOST:-""}
 
 # Standalone Solr environment variables.
@@ -56,6 +57,7 @@ echo "SOLR_PREFIX=${SOLR_PREFIX}"
 echo "SOLR_HOME=${SOLR_HOME}"
 echo "SOLR_HOST=${SOLR_HOST}"
 echo "SOLR_PORT=${SOLR_PORT}"
+echo "SOLR_HEAP_SIZE=${SOLR_HEAP_SIZE}"
 echo "ZK_HOST=${ZK_HOST}"
 
 echo "CORE_NAME=${CORE_NAME}"
@@ -68,191 +70,61 @@ echo "REPLICATION_FACTOR=${REPLICATION_FACTOR}"
 echo "MAX_SHARDS_PER_NODE=${MAX_SHARDS_PER_NODE}"
 echo "COLLECTION_CONFIG_NAME=${COLLECTION_CONFIG_NAME}"
 
+CLOUD_SCRIPTS_DIR=${SOLR_PREFIX}/server/scripts/cloud-scripts
+
 # Start function
 function start() {
   NODE_NAME=${SOLR_HOST}:${SOLR_PORT}_solr
 
+  # Standalo mode or SolrCloud mode?
   if [ -n "${ZK_HOST}" ]; then
 
     # Split ZK_HOST into ZK_HOST_LIST and ZK_ZNODE.
     declare -a ZK_HOST_LIST=()
     ZK_HOST_LIST=($(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\1/g' | tr -s ',' ' '))
     ZK_ZNODE=$(echo ${ZK_HOST} | sed -e 's/^\(.\{1,\}:[0-9]\{1,\}\)*\(.*\)$/\2/g')
-    ZNODE_LOCK=${ZK_ZNODE}/collections/${COLLECTION_NAME}/lock
 
-    # Create znode of SolrCloud
-    for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
+    # Create a znode to ZooKeeper.
+    for TMP_ZK_HOST in "${ZK_HOST_LIST[@]}"
     do
-      # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
-      ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
-      ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
+      # Split TMP_ZK_HOST into ZK_HOST_NAME and ZK_HOST_PORT.
+      ZK_HOST_NAME=$(echo ${TMP_ZK_HOST} | cut -d":" -f1)
+      ZK_HOST_PORT=$(echo ${TMP_ZK_HOST} | cut -d":" -f2)
 
-      # Check ZooKeeper node.
-      if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
-        continue
-      fi
-      if [ "${RESPONSE}" = "imok" ]; then
-        # Check znode for SolrCloud.
-        MATCHED_ZNODE=$(${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZK_ZNODE}\s+.*$" | sed -e "s|^ \{1,\}\(${ZK_ZNODE}\) \{1,\}.*|\1|g")
-        if [ -z "${MATCHED_ZNODE}" ]; then
-          # Make /solr
-          ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE}
-        fi
-        break
-      else
-        echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} status NG."
+      # Check znode for SolrCloud.
+      MATCHED_ZNODE=$(${CLOUD_SCRIPTS_DIR}/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZK_ZNODE}\s+.*$")
+      if [ -z "${MATCHED_ZNODE}" ]; then
+        # Make /solr
+        ${CLOUD_SCRIPTS_DIR}/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZK_ZNODE} > /dev/null 2>&1
       fi
     done
 
-    # Upload configset.
+    # Upload local configsets to ZooKeeper.
     declare -a CONFIGSETS_LIST=()
     CONFIGSETS_LIST=($(find ${SOLR_HOME}/configsets -type d -maxdepth 1 -mindepth 1 | awk -F / '{ print $NF }'))
     for CONFIGSETS in ${CONFIGSETS_LIST[@]}
     do
-      for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
+      for TMP_ZK_HOST in "${ZK_HOST_LIST[@]}"
       do
-        # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
-        ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
-        ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
+        # Split TMP_ZK_HOST into ZK_HOST_NAME and ZK_HOST_PORT.
+        ZK_HOST_NAME=$(echo ${TMP_ZK_HOST} | cut -d":" -f1)
+        ZK_HOST_PORT=$(echo ${TMP_ZK_HOST} | cut -d":" -f2)
 
-        # Check ZooKeeper node.
-        if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
-          continue
-        fi
-        if [ "${RESPONSE}" = "imok" ]; then
-          # Check configset.
-          MATCHED_CONFIGSETS=$(${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZK_ZNODE}/configs/${CONFIGSETS}\s+.*$" | sed -e "s|^ \{1,\}${ZK_ZNODE}/configs/\(${CONFIGSETS}\) \{1,\}.*|\1|g")
-          if [ -z "${MATCHED_CONFIGSETS}" ]; then
-            # Upload configset
-            ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT}${ZK_ZNODE} -cmd upconfig -confdir ${SOLR_HOME}/configsets/${CONFIGSETS}/conf/ -confname ${CONFIGSETS}
-          fi
-          break
-        else
-          echo "${ZK_HOST_NAME}:${ZK_HOST_PORT} status NG."
+        # Check configset.
+        MATCHED_CONFIGSETS=$(${CLOUD_SCRIPTS_DIR}/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZK_ZNODE}/configs/${CONFIGSETS}\s+.*$")
+        if [ -z "${MATCHED_CONFIGSETS}" ]; then
+          # Upload configset
+          ${CLOUD_SCRIPTS_DIR}/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT}${ZK_ZNODE} -cmd upconfig -confdir ${SOLR_HOME}/configsets/${CONFIGSETS}/conf/ -confname ${CONFIGSETS} > /dev/null 2>&1
         fi
       done
     done
 
-    # Start SolrCloud.
-    ${SOLR_PREFIX}/bin/solr start -h ${SOLR_HOST} -p ${SOLR_PORT} -z ${ZK_HOST} -s ${SOLR_HOME}
-    
-    # Cluster setting.
-    LIVE_NODE_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Flive_nodes" | jq -r '.tree[].children[].data.title'))
-    FIRST_NODE_NAME=$(echo "${LIVE_NODE_LIST[@]}" | sed -e 's/^\([^ ]\{1,\}\) \{1,\}.*/\1/')
-    if [[ "${FIRST_NODE_NAME}" = "${NODE_NAME}" ]]; then
-      # lock
-      for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
-      do
-        # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
-        ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
-        ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
-
-        # Check ZooKeeper node.
-        if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
-          continue
-        fi
-        if [ "${RESPONSE}" = "imok" ]; then
-          # Check znode for Lock.
-          MATCHED_ZNODE=$(${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZNODE_LOCK}\s+.*$" | sed -e "s|^ \{1,\}\(${ZNODE_LOCK}\) \{1,\}.*|\1|g")
-          if [ -z "${MATCHED_ZNODE}" ]; then
-            # Make lock node
-            ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd makepath ${ZNODE_LOCK}
-          fi
-          break
-        fi
-      done
-
-      # Waiting until minimal nodes have started.
-      while [ ${#LIVE_NODE_LIST[@]} -lt ${NUM_SHARDS} ]
-      do
-        LIVE_NODE_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Flive_nodes" | jq -r ".tree[].children[].data.title"))
-        sleep 1
-      done
-
-      # Get collection list.
-      COLLECTION_NAME_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=LIST&wt=json" | jq -r '.collections[]'))
-      if [[ ! " ${COLLECTION_NAME_LIST[@]} " =~ " ${COLLECTION_NAME} " ]]; then
-        # Create collection.
-        curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=CREATE&name=${COLLECTION_NAME}&numShards=${NUM_SHARDS}&collection.configName=${COLLECTION_CONFIG_NAME}" | xmllint --format -
-      fi
-
-      # unlock
-      for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
-      do
-        # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
-        ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
-        ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
-
-        # Check ZooKeeper node.
-        if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
-          continue
-        fi
-        if [ "${RESPONSE}" = "imok" ]; then
-          # Check znode for Lock.
-          MATCHED_ZNODE=$(${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZNODE_LOCK}\s+.*$" | sed -e "s|^ \{1,\}\(${ZNODE_LOCK}\) \{1,\}.*|\1|g")
-          if [ -n "${MATCHED_ZNODE}" ]; then
-            # Delete lock node
-            ${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd clear ${ZNODE_LOCK}
-          fi
-
-        fi
-      done
-    else
-      sleep 1
-    fi
-
-    # Waiting until the collection has unlocked.
-    COLLECTION_LOCK=1
-    while [ ${COLLECTION_LOCK} -eq 1 ]
-    do
-      for ZK_HOST_SERVER in "${ZK_HOST_LIST[@]}"
-      do
-        # Split ZK_HOST_SERVER into ZK_HOST_NAME and ZK_HOST_PORT.
-        ZK_HOST_NAME=$(echo ${ZK_HOST_SERVER} | cut -d":" -f1)
-        ZK_HOST_PORT=$(echo ${ZK_HOST_SERVER} | cut -d":" -f2)
-
-        # Check ZooKeeper node.
-        if ! RESPONSE=$(echo "ruok" | nc ${ZK_HOST_NAME} ${ZK_HOST_PORT} 2>/dev/null); then
-          continue
-        fi
-        if [ "${RESPONSE}" = "imok" ]; then
-          MATCHED_ZNODE=$(${SOLR_PREFIX}/server/scripts/cloud-scripts/zkcli.sh -zkhost ${ZK_HOST_NAME}:${ZK_HOST_PORT} -cmd list | grep -E "^\s+${ZNODE_LOCK}\s+.*$" | sed -e "s|^ \{1,\}\(${ZNODE_LOCK}\) \{1,\}.*|\1|g")
-          if [ -z "${MATCHED_ZNODE}" ]; then
-            COLLECTION_LOCK=0
-            break
-          fi
-        fi
-      done
-    done
-
-    # Waiting until the collection has created.
-    COLLECTION_NAME_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=LIST&wt=json" | jq -r '.collections[]'))
-    while [[ ! " ${COLLECTION_NAME_LIST[@]} " =~ " ${COLLECTION_NAME} " ]]
-    do
-      COLLECTION_NAME_LIST=($(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=LIST&wt=json" | jq -r '.collections[]'))
-      sleep 1
-    done
-
-    # Add replica.
-    STATE_JSON=$(curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/zookeeper?detail=true&path=%2Fcollections%2F${COLLECTION_NAME}%2Fstate.json")
-    NODE_LIST=($(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards[].replicas[].node_name"))
-    if [[ ! " ${NODE_LIST[@]} " =~ " ${NODE_NAME} " ]]; then
-      # Get shard name to add node.
-      SHARD_NAME=$(echo ${STATE_JSON} | jq -r ".znode.data" | jq -r ".${COLLECTION_NAME}.shards" | jq "to_entries" | jq "min_by(.value.replicas | length)" | jq -r ".key")
-      # Add node as replica to shard of collection.
-      curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/collections?action=ADDREPLICA&collection=${COLLECTION_NAME}&shard=${SHARD_NAME}&node=${NODE_NAME}" | xmllint --format -
-    fi
+    # Start Solr in SolrCloud mode.
+    ${SOLR_PREFIX}/bin/solr start -h ${SOLR_HOST} -p ${SOLR_PORT} -m ${SOLR_HEAP_SIZE} -s ${SOLR_HOME} -z ${ZK_HOST}
   else
-    # Start standalone Solr.
-    ${SOLR_PREFIX}/bin/solr start -h ${SOLR_HOST} -p ${SOLR_PORT} -s ${SOLR_HOME}
-
-    if [ -n "${CORE_NAME}" ]; then
-      # Create core.
-      curl -s "http://${SOLR_HOST}:${SOLR_PORT}/solr/admin/cores?action=CREATE&name=${CORE_NAME}&configSet=${CONFIG_SET}&dataDir=${DATA_DIR}" | xmllint --format -
-    fi
+    # Start Solr standalone mode.
+    ${SOLR_PREFIX}/bin/solr start -h ${SOLR_HOST} -p ${SOLR_PORT} -m ${SOLR_HEAP_SIZE} -s ${SOLR_HOME}
   fi
-  
-  echo "${NODE_NAME} is available."
 }
 
 trap "docker-stop.sh; exit 1" TERM KILL INT QUIT
