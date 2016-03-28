@@ -5,7 +5,7 @@
 ### 1. Start standalone Solr
 
 ```sh
-$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.x
+$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.5
 3f2efe1c75316e53b19e90df4c13210a16eac3b88e0c161c07ce05e883bed270
 ```
 
@@ -14,7 +14,7 @@ $ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.x
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED             STATUS              PORTS                                         NAMES
-3f2efe1c7531        mosuka/docker-solr:release-5.x        "/usr/local/bin/docke"   2 minutes ago       Up 2 minutes        7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr
+3f2efe1c7531        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago       Up 2 minutes        7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr
 ```
 
 ### 3. Get container IP
@@ -87,16 +87,16 @@ See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5](https://github.
 ### 2. Start Solr
 
 ```sh
-$ docker run -d -p 8984:8983 --name=solr1 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.x
+$ docker run -d -p 8984:8983 --name=solr1 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
 050266bf5d3ceb57722739c2a234f50a1da64257b9084637fb7d8fb7fec1706d
 
-$ docker run -d -p 8985:8983 --name=solr2 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.x
+$ docker run -d -p 8985:8983 --name=solr2 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
 a9389a7561bc82519bd937c7a198426d055efc1368a97570a4c61e51c3c81831
 
-$ docker run -d -p 8986:8983 --name=solr3 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.x
+$ docker run -d -p 8986:8983 --name=solr3 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
 1c51e85239070b1c6abbb3960410f37ba31adea4af576e235cc6f2f9559e3d40
 
-$ docker run -d -p 8987:8983 --name=solr4 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.x
+$ docker run -d -p 8987:8983 --name=solr4 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
 dabeb0bb021aa74d49fcae174fddf63dc68b2e93c071d67e2650392b1cf18f4c
 ```
 
@@ -105,10 +105,10 @@ dabeb0bb021aa74d49fcae174fddf63dc68b2e93c071d67e2650392b1cf18f4c
 ```sh
 $ docker ps
 CONTAINER ID        IMAGE                                 COMMAND                  CREATED              STATUS              PORTS                                         NAMES
-050266bf5d3c        mosuka/docker-solr:release-5.x        "/usr/local/bin/docke"   11 seconds ago       Up 11 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8987->8983/tcp   solr4
-a9389a7561bc        mosuka/docker-solr:release-5.x        "/usr/local/bin/docke"   28 seconds ago       Up 27 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8986->8983/tcp   solr3
-1c51e8523907        mosuka/docker-solr:release-5.x        "/usr/local/bin/docke"   45 seconds ago       Up 45 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8985->8983/tcp   solr2
-dabeb0bb021a        mosuka/docker-solr:release-5.x        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr1
+050266bf5d3c        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   11 seconds ago       Up 11 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8987->8983/tcp   solr4
+a9389a7561bc        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   28 seconds ago       Up 27 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8986->8983/tcp   solr3
+1c51e8523907        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   45 seconds ago       Up 45 seconds       7983/tcp, 18983/tcp, 0.0.0.0:8985->8983/tcp   solr2
+dabeb0bb021a        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr1
 fc8b3b3ed997        mosuka/docker-zookeeper:release-3.5   "/usr/local/bin/docke"   18 hours ago         Up 18 hours         2888/tcp, 3888/tcp, 0.0.0.0:2182->2181/tcp    zookeeper```
 
 ### 4. Get container IP and port
