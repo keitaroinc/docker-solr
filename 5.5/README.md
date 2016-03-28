@@ -1,6 +1,6 @@
 # docker-solr
 
-This is a Docker image for Apache ZooKeeper.
+This is a Docker image for Apache Solr.
 
 ## What is Solr?
 
