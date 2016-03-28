@@ -1,15 +1,25 @@
 # docker-solr
 
-## Standalone Solr example
+This is a Docker image for Apache ZooKeeper.
 
-### 1. Start standalone Solr
+## What is Solr?
+
+[Solr](http://lucene.apache.org/solr/) (pronounced "solar") is an open source enterprise search platform, written in Java, from the Apache Lucene project. Its major features include full-text search, hit highlighting, faceted search, real-time indexing, dynamic clustering, database integration, NoSQL features[1] and rich document (e.g., Word, PDF) handling. Providing distributed search and index replication, Solr is designed for scalability and Fault tolerance.
+
+Learn more about Solr on the [Solr Wiki](https://cwiki.apache.org/confluence/display/solr/Apache+Solr+Reference+Guide).
+
+## How to use this Docker image
+
+### Standalone Solr example
+
+#### 1. Start standalone Solr
 
 ```sh
 $ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.5
 3f2efe1c75316e53b19e90df4c13210a16eac3b88e0c161c07ce05e883bed270
 ```
 
-### 2. Check container ID
+#### 2. Check container ID
 
 ```sh
 $ docker ps
@@ -17,7 +27,7 @@ CONTAINER ID        IMAGE                                 COMMAND               
 3f2efe1c7531        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   2 minutes ago       Up 2 minutes        7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr
 ```
 
-### 3. Get container IP
+#### 3. Get container IP
 
 ```sh
 $ SOLR_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr)
@@ -25,7 +35,7 @@ $ echo ${SOLR_CONTAINER_IP}
 172.17.0.2
 ```
 
-### 4. Get host IP and port
+#### 4. Get host IP and port
 
 ```sh
 $ SOLR_HOST_IP=$(docker-machine ip default)
@@ -37,7 +47,7 @@ $ echo ${SOLR_HOST_PORT}
 8984
 ```
 
-### 5. Open Solr Admin UI in a browser
+#### 5. Open Solr Admin UI in a browser
 
 ```sh
 $ SOLR_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_HOST_PORT}/solr/#/
@@ -47,7 +57,7 @@ http://192.168.99.100:8984/solr/#/
 
 Open Solr Admin UI in a browser.
 
-### 6. Create core
+#### 6. Create core
 
 ```sh
 $ CORE_NAME=collection1
@@ -64,7 +74,7 @@ $ curl -s "http://${SOLR_HOST_IP}:${SOLR_HOST_PORT}/solr/admin/cores?action=CREA
 </response>
 ```
 
-### 7. Stop standalone Solr
+#### 7. Stop standalone Solr
 
 ```
 $ docker stop solr
@@ -74,17 +84,15 @@ $ docker rm solr
 solr
 ```
 
+### SolrCloud (2 shards across 4 nodes with replication factor 2) example
 
-
-## SolrCloud (2 shards across 4 nodes with replication factor 2) example
-
-### 1. Start Zookeeper ensemble
+#### 1. Start Zookeeper ensemble
 
 Run ZooKeeper ensemble.
 
 See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5](https://github.com/mosuka/docker-zookeeper/tree/master/3.5).
 
-### 2. Start Solr
+#### 2. Start Solr
 
 ```sh
 $ docker run -d -p 8984:8983 --name=solr1 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
@@ -100,7 +108,7 @@ $ docker run -d -p 8987:8983 --name=solr4 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2
 dabeb0bb021aa74d49fcae174fddf63dc68b2e93c071d67e2650392b1cf18f4c
 ```
 
-### 3. Check container ID
+#### 3. Check container ID
 
 ```sh
 $ docker ps
@@ -111,7 +119,7 @@ a9389a7561bc        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"
 dabeb0bb021a        mosuka/docker-solr:release-5.5        "/usr/local/bin/docke"   About a minute ago   Up About a minute   7983/tcp, 18983/tcp, 0.0.0.0:8984->8983/tcp   solr1
 fc8b3b3ed997        mosuka/docker-zookeeper:release-3.5   "/usr/local/bin/docke"   18 hours ago         Up 18 hours         2888/tcp, 3888/tcp, 0.0.0.0:2182->2181/tcp    zookeeper```
 
-### 4. Get container IP and port
+#### 4. Get container IP and port
 
 ```sh
 $ SOLR_1_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr1)
@@ -131,7 +139,7 @@ $ echo ${SOLR_4_CONTAINER_IP}
 172.17.0.6
 ```
 
-### 5. Get host IP and port
+#### 5. Get host IP and port
 
 ```sh
 $ SOLR_HOST_IP=$(docker-machine ip default)
@@ -155,7 +163,7 @@ $ echo ${SOLR_4_HOST_PORT}
 8987
 ```
 
-### 6. Open Solr Admin UI in a browser
+#### 6. Open Solr Admin UI in a browser
 
 ```sh
 $ SOLR_1_ADMIN_UI=http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/#/
@@ -177,7 +185,7 @@ http://192.168.99.100:8987/solr/#/
 
 Open Solr Admin UI in a browser.
 
-### 7. Create Collection
+#### 7. Create Collection
 
 ```sh
 $ COLLECTION_NAME=collection1
@@ -226,7 +234,7 @@ $ curl -s "http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/admin/collections?act
 </response>
 ```
 
-### 8. Stop standalone Solr
+#### 8. Stop standalone Solr
 
 ```
 $ docker stop solr1 solr2 solr3 solr4
