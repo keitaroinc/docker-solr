@@ -95,16 +95,24 @@ See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5](https://github.
 #### 2. Start Solr
 
 ```sh
-$ docker run -d -p 8984:8983 --name=solr1 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8984:8983 --name=solr1 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
+    mosuka/docker-solr:release-5.5
 050266bf5d3ceb57722739c2a234f50a1da64257b9084637fb7d8fb7fec1706d
 
-$ docker run -d -p 8985:8983 --name=solr2 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8985:8983 --name=solr2 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
+    mosuka/docker-solr:release-5.5
 a9389a7561bc82519bd937c7a198426d055efc1368a97570a4c61e51c3c81831
 
-$ docker run -d -p 8986:8983 --name=solr3 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8986:8983 --name=solr3 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
+    mosuka/docker-solr:release-5.5
 1c51e85239070b1c6abbb3960410f37ba31adea4af576e235cc6f2f9559e3d40
 
-$ docker run -d -p 8987:8983 --name=solr4 -e ZK_HOST=${ZOOKEEPER_CONTAINER_IP}:2181/solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8987:8983 --name=solr4 \
+    -e ZK_HOST=${ZOOKEEPER_1_CONTAINER_IP}:2181,${ZOOKEEPER_2_CONTAINER_IP}:2181,${ZOOKEEPER_3_CONTAINER_IP}:2181/solr \
+    mosuka/docker-solr:release-5.5
 dabeb0bb021aa74d49fcae174fddf63dc68b2e93c071d67e2650392b1cf18f4c
 ```
 
@@ -124,19 +132,19 @@ fc8b3b3ed997        mosuka/docker-zookeeper:release-3.5   "/usr/local/bin/docke"
 ```sh
 $ SOLR_1_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr1)
 $ echo ${SOLR_1_CONTAINER_IP}
-172.17.0.3
+172.17.0.5
 
 $ SOLR_2_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr2)
 $ echo ${SOLR_2_CONTAINER_IP}
-172.17.0.4
+172.17.0.6
 
 $ SOLR_3_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr3)
 $ echo ${SOLR_3_CONTAINER_IP}
-172.17.0.5
+172.17.0.7
 
 $ SOLR_4_CONTAINER_IP=$(docker inspect -f '{{ .NetworkSettings.IPAddress }}' solr4)
 $ echo ${SOLR_4_CONTAINER_IP}
-172.17.0.6
+172.17.0.8
 ```
 
 #### 5. Get host IP and port

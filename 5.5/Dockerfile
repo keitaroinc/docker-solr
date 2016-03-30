@@ -28,30 +28,33 @@ RUN apt-get update \
 
 # Add group
 ENV SOLR_GROUP solr
-RUN groupadd -r $SOLR_GROUP
+RUN groupadd -r ${SOLR_GROUP}
 
 # Add user
 ENV SOLR_USER solr
 ENV SOLR_UID 8983
-RUN useradd -r -u $SOLR_UID -g $SOLR_GROUP $SOLR_USER
+RUN useradd -r -u ${SOLR_UID} -g ${SOLR_GROUP} ${SOLR_USER}
 
-# Install ZooKeeper
+# Install Solr
 ENV INSTALL_DIR=/opt
 ENV SOLR_VERSION 5.5.0
 RUN mkdir -p ${INSTALL_DIR}
 WORKDIR ${INSTALL_DIR}
-RUN curl -L -o ${INSTALL_DIR}/solr-$SOLR_VERSION.tgz http://archive.apache.org/dist/lucene/solr/$SOLR_VERSION/solr-$SOLR_VERSION.tgz
-RUN tar -xzf solr-$SOLR_VERSION.tgz && rm ${INSTALL_DIR}/solr-$SOLR_VERSION.tgz
+RUN curl -L -o ${INSTALL_DIR}/solr-${SOLR_VERSION}.tgz http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.tgz
+RUN tar -xzf solr-${SOLR_VERSION}.tgz && rm ${INSTALL_DIR}/solr-${SOLR_VERSION}.tgz
 ENV SOLR_PREFIX ${INSTALL_DIR}/solr-${SOLR_VERSION}
-RUN chown -R $SOLR_USER:$SOLR_GROUP $SOLR_PREFIX
+RUN chown -R ${SOLR_USER}:${SOLR_GROUP} ${SOLR_PREFIX}
+
+# Add webdefault.xml (Enable CORS)
+ADD webdefault.xml ${SOLR_PREFIX}/server/etc
 
 # Add start script
 ADD docker-run.sh /usr/local/bin/
 ADD docker-stop.sh /usr/local/bin/
 
 EXPOSE 8983 7983 18983
-USER $SOLR_USER
+USER ${SOLR_USER}
 
-WORKDIR $SOLR_PREFIX
+WORKDIR ${SOLR_PREFIX}
 
 CMD ["/usr/local/bin/docker-run.sh"]
