@@ -15,7 +15,7 @@ Learn more about Solr on the [Solr Wiki](https://cwiki.apache.org/confluence/dis
 #### 1. Start standalone Solr
 
 ```sh
-$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-5.5
+$ docker run -d -p 8984:8983 --name solr mosuka/docker-solr:release-4.10
 3f2efe1c75316e53b19e90df4c13210a16eac3b88e0c161c07ce05e883bed270
 ```
 
@@ -57,24 +57,7 @@ http://192.168.99.100:8984/solr/#/
 
 Open Solr Admin UI in a browser.
 
-#### 6. Create core
-
-```sh
-$ CORE_NAME=collection1
-$ CONFIG_SET=data_driven_schema_configs
-$ DATA_DIR=data
-$ curl -s "http://${SOLR_HOST_IP}:${SOLR_HOST_PORT}/solr/admin/cores?action=CREATE&name=${CORE_NAME}&configSet=${CONFIG_SET}&dataDir=${DATA_DIR}" | xmllint --format -
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">2944</int>
-  </lst>
-  <str name="core">collection1</str>
-</response>
-```
-
-#### 7. Stop standalone Solr
+#### 6. Stop standalone Solr
 
 ```
 $ docker stop solr
@@ -90,7 +73,7 @@ solr
 
 Run ZooKeeper ensemble.
 
-See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5](https://github.com/mosuka/docker-zookeeper/tree/master/3.5).
+See [https://github.com/mosuka/docker-zookeeper/tree/master/3.4](https://github.com/mosuka/docker-zookeeper/tree/master/3.4).
 
 #### 2. Start Solr
 
@@ -193,56 +176,7 @@ http://192.168.99.100:8987/solr/#/
 
 Open Solr Admin UI in a browser.
 
-#### 7. Create Collection
-
-```sh
-$ COLLECTION_NAME=collection1
-$ NUM_SHARDS=2
-$ COLLECTION_CONFIG_NAME=data_driven_schema_configs
-$ REPLICATION_FACTOR=2
-$ MAX_SHARDS_PER_NODE=10
-$ CREATE_NODE_SET=$(echo $(curl -s "http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/admin/collections?action=CLUSTERSTATUS&wt=json" | jq -r ".cluster.live_nodes[]") | sed -e 's/ /,/g')
-$ curl -s "http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/admin/collections?action=CREATE&name=${COLLECTION_NAME}&numShards=${NUM_SHARDS}&replicationFactor=${REPLICATION_FACTOR}&maxShardsPerNode=${MAX_SHARDS_PER_NODE}&createNodeSet=${CREATE_NODE_SET}&collection.configName=${COLLECTION_CONFIG_NAME}" | xmllint --format -
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">22212</int>
-  </lst>
-  <lst name="success">
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">16029</int>
-      </lst>
-      <str name="core">collection1_shard2_replica2</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">16688</int>
-      </lst>
-      <str name="core">collection1_shard2_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21176</int>
-      </lst>
-      <str name="core">collection1_shard1_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21608</int>
-      </lst>
-      <str name="core">collection1_shard1_replica2</str>
-    </lst>
-  </lst>
-</response>
-```
-
-#### 8. Stop standalone Solr
+#### 7. Stop standalone Solr
 
 ```
 $ docker stop solr1 solr2 solr3 solr4

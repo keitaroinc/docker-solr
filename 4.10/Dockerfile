@@ -32,15 +32,16 @@ ENV SOLR_PREFIX ${HOME}/solr-${SOLR_VERSION}
 RUN apt-get update && \
     apt-get install -y tar netcat lsof jq libxml2-utils && \
     apt-get clean && \
+    mkdir -p ${HOME} && \
     groupadd -r ${SOLR_GROUP} && \
     useradd -u ${SOLR_UID} -g ${SOLR_GROUP} -d ${HOME} ${SOLR_USER} && \
-    curl -L -o ${HOME}/solr-${SOLR_VERSION}.tgz http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.tgz
-    tar -xzf ${HOME}/solr-${SOLR_VERSION}.tgz -C ${HOME} && \
-    rm ${HOME}/solr-${SOLR_VERSION}.tgz
+    curl -L -o ${HOME}/solr-${SOLR_VERSION}.tgz http://archive.apache.org/dist/lucene/solr/${SOLR_VERSION}/solr-${SOLR_VERSION}.tgz && \
+    tar -C ${HOME} -xf ${HOME}/solr-${SOLR_VERSION}.tgz && \
+    rm ${HOME}/solr-${SOLR_VERSION}.tgz && \
     chown -R ${SOLR_USER}:${SOLR_GROUP} ${HOME}
 
 # Add webdefault.xml (Enable CORS)
-ADD webdefault.xml ${SOLR_PREFIX}/server/etc
+#ADD webdefault.xml ${SOLR_PREFIX}/server/etc
 
 # Add start script
 ADD docker-run.sh /usr/local/bin/
