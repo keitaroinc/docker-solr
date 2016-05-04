@@ -62,16 +62,20 @@ Open Solr Admin UI in a browser.
 ```sh
 $ CORE_NAME=collection1
 $ CONFIG_SET=data_driven_schema_configs
-$ DATA_DIR=data
-$ curl -s "http://${SOLR_HOST_IP}:${SOLR_HOST_PORT}/solr/admin/cores?action=CREATE&name=${CORE_NAME}&configSet=${CONFIG_SET}&dataDir=${DATA_DIR}" | xmllint --format -
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">2944</int>
-  </lst>
-  <str name="core">collection1</str>
-</response>
+$ docker exec -it solr ./bin/solr create_core -c ${CORE_NAME} -d ${CONFIG_SET}
+
+Copying configuration to new core instance directory:
+/opt/solr-5.5.0/server/solr/collection1
+
+Creating new core 'collection1' using command:
+http://localhost:8983/solr/admin/cores?action=CREATE&name=collection1&instanceDir=collection1
+
+{
+  "responseHeader":{
+    "status":0,
+    "QTime":848},
+  "core":"collection1"}
+
 ```
 
 #### 7. Stop standalone Solr
@@ -92,7 +96,7 @@ Run ZooKeeper ensemble.
 
 See [https://github.com/mosuka/docker-zookeeper/tree/master/3.5](https://github.com/mosuka/docker-zookeeper/tree/master/3.5).
 
-#### 2. Start Solr
+#### 2. Start SolrCloud
 
 ```sh
 $ docker run -d -p 8984:8983 --name=solr1 \
@@ -197,52 +201,29 @@ Open Solr Admin UI in a browser.
 
 ```sh
 $ COLLECTION_NAME=collection1
-$ NUM_SHARDS=2
 $ COLLECTION_CONFIG_NAME=data_driven_schema_configs
+$ NUM_SHARDS=2
 $ REPLICATION_FACTOR=2
-$ MAX_SHARDS_PER_NODE=10
-$ CREATE_NODE_SET=$(echo $(curl -s "http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/admin/collections?action=CLUSTERSTATUS&wt=json" | jq -r ".cluster.live_nodes[]") | sed -e 's/ /,/g')
-$ curl -s "http://${SOLR_HOST_IP}:${SOLR_1_HOST_PORT}/solr/admin/collections?action=CREATE&name=${COLLECTION_NAME}&numShards=${NUM_SHARDS}&replicationFactor=${REPLICATION_FACTOR}&maxShardsPerNode=${MAX_SHARDS_PER_NODE}&createNodeSet=${CREATE_NODE_SET}&collection.configName=${COLLECTION_CONFIG_NAME}" | xmllint --format -
-<?xml version="1.0" encoding="UTF-8"?>
-<response>
-  <lst name="responseHeader">
-    <int name="status">0</int>
-    <int name="QTime">22212</int>
-  </lst>
-  <lst name="success">
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">16029</int>
-      </lst>
-      <str name="core">collection1_shard2_replica2</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">16688</int>
-      </lst>
-      <str name="core">collection1_shard2_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21176</int>
-      </lst>
-      <str name="core">collection1_shard1_replica1</str>
-    </lst>
-    <lst>
-      <lst name="responseHeader">
-        <int name="status">0</int>
-        <int name="QTime">21608</int>
-      </lst>
-      <str name="core">collection1_shard1_replica2</str>
-    </lst>
-  </lst>
-</response>
+$ docker exec -it solr1 ./bin/solr create_collection -c ${COLLECTION_NAME} -d ${COLLECTION_CONFIG_NAME} -n ${COLLECTION_NAME}_config -shards ${NUM_SHARDS} -replicationFactor ${REPLICATION_FACTOR}
+
+Connecting to ZooKeeper at 172.17.0.2:2181,172.17.0.3:2181,172.17.0.4:2181/solr ...
+Uploading /opt/solr-5.5.0/server/solr/configsets/data_driven_schema_configs/conf for config collection1_config to ZooKeeper at 172.17.0.2:2181,172.17.0.3:2181,172.17.0.4:2181/solr
+
+Creating new collection 'collection1' using command:
+http://localhost:8983/solr/admin/collections?action=CREATE&name=collection1&numShards=2&replicationFactor=2&maxShardsPerNode=1&collection.configName=collection1_config
+
+{
+  "responseHeader":{
+    "status":0,
+    "QTime":21682},
+  "success":{"":{
+      "responseHeader":{
+        "status":0,
+        "QTime":20873},
+      "core":"collection1_shard2_replica1"}}}
 ```
 
-#### 8. Stop standalone Solr
+#### 8. Stop SolrCloud
 
 ```
 $ docker stop solr1 solr2 solr3 solr4
