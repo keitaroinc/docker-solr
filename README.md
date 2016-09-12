@@ -8,6 +8,20 @@ This is a Docker image for Apache Solr.
 
 Learn more about Solr on the [Solr Wiki](https://cwiki.apache.org/confluence/display/solr/Apache+Solr+Reference+Guide).
 
+## How to build this Docker image
+
+```
+$ git clone git@github.com:mosuka/docker-solr.git ${HOME}/git/docker-solr
+$ cd ${HOME}/git/docker-solr
+$ docker build -t mosuka/docker-solr:latest .
+```
+
+## How to pull this Docker image
+
+```
+$ docker pull mosuka/docker-solr:latest
+```
+
 ## How to use this Docker image
 
 ### Standalone Solr example
@@ -72,8 +86,8 @@ solr
 
 Run ZooKeeper. See following URL:
 
-Source: [https://github.com/mosuka/docker-zookeeper](https://github.com/mosuka/docker-zookeeper)
-Docker Image: [https://hub.docker.com/r/mosuka/docker-zookeeper/](https://hub.docker.com/r/mosuka/docker-zookeeper/)
+- Source: [https://github.com/mosuka/docker-zookeeper](https://github.com/mosuka/docker-zookeeper)
+- Docker Image: [https://hub.docker.com/r/mosuka/docker-zookeeper/](https://hub.docker.com/r/mosuka/docker-zookeeper/)
 
 #### 2. Start SolrCloud
 
